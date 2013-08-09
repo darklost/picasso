@@ -54,6 +54,19 @@ public class Picasso {
     void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception);
   }
 
+  /** Transformer for all incoming requests. */
+  public interface RequestTransformer {
+    /** TODO describe this shit. */
+    RequestData transformRequest(RequestData request);
+
+    /** A {@link RequestTransformer} which returns the original request. */
+    RequestTransformer NONE = new RequestTransformer() {
+      @Override public RequestData transformRequest(RequestData request) {
+        return request;
+      }
+    };
+  }
+
   static final Handler HANDLER = new Handler(Looper.getMainLooper()) {
     @Override public void handleMessage(Message msg) {
       switch (msg.what) {
@@ -81,6 +94,7 @@ public class Picasso {
   final Dispatcher dispatcher;
   final Cache cache;
   final Listener listener;
+  final RequestTransformer requestTransformer;
   final Stats stats;
   final Map<Object, Request> targetToRequest = new WeakHashMap<Object, Request>();
   final ReferenceQueue<Object> referenceQueue;
@@ -89,12 +103,13 @@ public class Picasso {
   boolean debugging;
   boolean shutdown;
 
-  Picasso(Context context, Dispatcher dispatcher, Cache cache, Listener listener, Stats stats,
-      boolean debugging) {
+  Picasso(Context context, Dispatcher dispatcher, Cache cache, Listener listener,
+      RequestTransformer requestTransformer, Stats stats, boolean debugging) {
     this.context = context;
     this.dispatcher = dispatcher;
     this.cache = cache;
     this.listener = listener;
+    this.requestTransformer = requestTransformer;
     this.stats = stats;
     this.debugging = debugging;
     this.referenceQueue = new ReferenceQueue<Object>();
@@ -244,7 +259,7 @@ public class Picasso {
       return;
     }
 
-    Uri uri = hunter.getUri();
+    Uri uri = hunter.getData().uri;
     Exception exception = hunter.getException();
     Bitmap result = hunter.getResult();
     LoadedFrom from = hunter.getLoadedFrom();
@@ -344,6 +359,7 @@ public class Picasso {
     private ExecutorService service;
     private Cache cache;
     private Listener listener;
+    private RequestTransformer transformer;
     private boolean debugging;
 
     /** Start building a new {@link Picasso} instance. */
@@ -402,6 +418,18 @@ public class Picasso {
       return this;
     }
 
+    /** Specify a transformer for all incoming requests. */
+    public Builder requestTransformer(RequestTransformer transformer) {
+      if (transformer == null) {
+        throw new IllegalArgumentException("Transformer must not be null.");
+      }
+      if (this.transformer != null) {
+        throw new IllegalStateException("Transformer already set.");
+      }
+      this.transformer = transformer;
+      return this;
+    }
+
     /** Whether debugging is enabled or not. */
     public Builder debugging(boolean debugging) {
       this.debugging = debugging;
@@ -421,12 +449,15 @@ public class Picasso {
       if (service == null) {
         service = new PicassoExecutorService();
       }
+      if (transformer == null) {
+        transformer = RequestTransformer.NONE;
+      }
 
       Stats stats = new Stats(cache);
 
       Dispatcher dispatcher = new Dispatcher(context, service, HANDLER, downloader, cache);
 
-      return new Picasso(context, dispatcher, cache, listener, stats, debugging);
+      return new Picasso(context, dispatcher, cache, listener, transformer, stats, debugging);
     }
   }
 

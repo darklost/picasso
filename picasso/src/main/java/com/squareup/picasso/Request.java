@@ -17,13 +17,10 @@ package com.squareup.picasso;
 
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.List;
 
 abstract class Request<T> {
-
   static class RequestWeakReference<T> extends WeakReference<T> {
     final Request request;
 
@@ -34,11 +31,8 @@ abstract class Request<T> {
   }
 
   final Picasso picasso;
-  final Uri uri;
-  final int resourceId;
+  final RequestData data;
   final WeakReference<T> target;
-  final PicassoBitmapOptions options;
-  final List<Transformation> transformations;
   final boolean skipCache;
   final boolean noFade;
   final int errorResId;
@@ -47,15 +41,11 @@ abstract class Request<T> {
 
   boolean cancelled;
 
-  Request(Picasso picasso, Uri uri, int resourceId, T target, PicassoBitmapOptions options,
-      List<Transformation> transformations, boolean skipCache, boolean noFade, int errorResId,
+  Request(Picasso picasso, T target, RequestData data, boolean skipCache, boolean noFade, int errorResId,
       Drawable errorDrawable, String key) {
     this.picasso = picasso;
-    this.uri = uri;
-    this.resourceId = resourceId;
+    this.data = data;
     this.target = new RequestWeakReference<T>(this, target, picasso.referenceQueue);
-    this.options = options;
-    this.transformations = transformations;
     this.skipCache = skipCache;
     this.noFade = noFade;
     this.errorResId = errorResId;
@@ -71,20 +61,16 @@ abstract class Request<T> {
     cancelled = true;
   }
 
+  RequestData getData() {
+    return data;
+  }
+
   T getTarget() {
     return target.get();
   }
 
-  Uri getUri() {
-    return uri;
-  }
-
   String getKey() {
     return key;
-  }
-
-  int getResourceId() {
-    return resourceId;
   }
 
   boolean isCancelled() {

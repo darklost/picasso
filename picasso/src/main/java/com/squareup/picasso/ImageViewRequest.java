@@ -3,19 +3,15 @@ package com.squareup.picasso;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.widget.ImageView;
-import java.util.List;
 
 class ImageViewRequest extends Request<ImageView> {
 
   private Callback callback;
 
-  ImageViewRequest(Picasso picasso, Uri uri, int resourceId, ImageView imageView,
-      PicassoBitmapOptions options, List<Transformation> transformations, boolean skipCache,
+  ImageViewRequest(Picasso picasso, ImageView imageView, RequestData data, boolean skipCache,
       boolean noFade, int errorResId, Drawable errorDrawable, String key, Callback callback) {
-    super(picasso, uri, resourceId, imageView, options, transformations, skipCache, noFade,
-        errorResId, errorDrawable, key);
+    super(picasso, imageView, data, skipCache, noFade, errorResId, errorDrawable, key);
     this.callback = callback;
   }
 

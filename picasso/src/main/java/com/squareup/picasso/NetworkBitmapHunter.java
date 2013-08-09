@@ -17,7 +17,6 @@ package com.squareup.picasso;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -37,10 +36,10 @@ class NetworkBitmapHunter extends BitmapHunter {
     this.airplaneMode = airplaneMode;
   }
 
-  @Override Bitmap decode(Uri uri, PicassoBitmapOptions options, int retryCount)
+  @Override Bitmap decode(RequestData data, int retryCount)
       throws IOException {
     boolean loadFromLocalCacheOnly = retryCount == 0 || airplaneMode;
-    Response response = downloader.load(this.uri, loadFromLocalCacheOnly);
+    Response response = downloader.load(data.uri, loadFromLocalCacheOnly);
     loadedFrom = response.cached ? DISK : NETWORK;
 
     Bitmap result = response.getBitmap();
@@ -51,7 +50,7 @@ class NetworkBitmapHunter extends BitmapHunter {
     InputStream is = null;
     try {
       is = response.getInputStream();
-      return decodeStream(is, options);
+      return decodeStream(is, data);
     } finally {
       Utils.closeQuietly(is);
     }
@@ -61,17 +60,21 @@ class NetworkBitmapHunter extends BitmapHunter {
     return loadedFrom;
   }
 
-  private Bitmap decodeStream(InputStream stream, PicassoBitmapOptions options) throws IOException {
+  private Bitmap decodeStream(InputStream stream, RequestData data) throws IOException {
     if (stream == null) {
       return null;
     }
-    if (options != null && options.inJustDecodeBounds) {
+    BitmapFactory.Options options = null;
+    if (data.hasSize()) {
+      options = new BitmapFactory.Options();
+      options.inJustDecodeBounds = true;
+
       MarkableInputStream markStream = new MarkableInputStream(stream);
       stream = markStream;
 
       long mark = markStream.savePosition(1024); // Mirrors BitmapFactory.cpp value.
       BitmapFactory.decodeStream(stream, null, options);
-      calculateInSampleSize(options);
+      calculateInSampleSize(data.targetWidth, data.targetHeight, options);
 
       markStream.reset(mark);
     }

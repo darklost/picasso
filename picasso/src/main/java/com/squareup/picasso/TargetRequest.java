@@ -16,24 +16,11 @@
 package com.squareup.picasso;
 
 import android.graphics.Bitmap;
-import android.net.Uri;
-import java.lang.ref.WeakReference;
-import java.util.List;
 
 final class TargetRequest extends Request<Target> {
 
-  private final WeakReference<Target> weakTarget;
-
-  TargetRequest(Picasso picasso, Uri uri, int resourceId, Target target,
-      PicassoBitmapOptions bitmapOptions, List<Transformation> transformations, boolean skipCache,
-      String key) {
-    super(picasso, uri, resourceId, null, bitmapOptions, transformations, skipCache, false, 0, null,
-        key);
-    this.weakTarget = new RequestWeakReference<Target>(this, target, picasso.referenceQueue);
-  }
-
-  @Override Target getTarget() {
-    return weakTarget.get();
+  TargetRequest(Picasso picasso, Target target, RequestData data, boolean skipCache, String key) {
+    super(picasso, target, data, skipCache, false, 0, null, key);
   }
 
   @Override void complete(Bitmap result, Picasso.LoadedFrom from) {

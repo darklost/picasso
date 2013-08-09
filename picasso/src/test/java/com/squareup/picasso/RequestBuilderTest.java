@@ -172,7 +172,7 @@ public class RequestBuilderTest {
   public void intoImageViewWithQuickMemoryCacheCheckDoesNotSubmit() throws Exception {
     Picasso picasso =
         spy(new Picasso(Robolectric.application, mock(Dispatcher.class), Cache.NONE, null,
-            mock(Stats.class), true));
+            requestTransformer, mock(Stats.class), true));
     when(picasso.quickMemoryCacheCheck(URI_KEY_1)).thenReturn(BITMAP_1);
     ImageView target = mockImageViewTarget();
     new RequestBuilder(picasso, URI_1, 0).into(target);
@@ -185,7 +185,7 @@ public class RequestBuilderTest {
   public void intoImageViewSetsPlaceholderDrawable() throws Exception {
     Picasso picasso =
         spy(new Picasso(Robolectric.application, mock(Dispatcher.class), Cache.NONE, null,
-            mock(Stats.class), true));
+            requestTransformer, mock(Stats.class), true));
     ImageView target = mockImageViewTarget();
     Drawable placeHolderDrawable = mock(Drawable.class);
     new RequestBuilder(picasso, URI_1, 0).placeholder(placeHolderDrawable).into(target);
@@ -198,7 +198,7 @@ public class RequestBuilderTest {
   public void intoImageViewSetsPlaceholderWithResourceId() throws Exception {
     Picasso picasso =
         spy(new Picasso(Robolectric.application, mock(Dispatcher.class), Cache.NONE, null,
-            mock(Stats.class), true));
+            requestTransformer, mock(Stats.class), true));
     ImageView target = mockImageViewTarget();
     new RequestBuilder(picasso, URI_1, 0).placeholder(R.drawable.picture_frame).into(target);
     verify(target).setImageResource(R.drawable.picture_frame);
